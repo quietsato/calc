@@ -1,10 +1,13 @@
 module Main (main) where
 
-import           Lib (parser)
+
+import           Lib
 
 main :: IO ()
 main = do
-  print "input a equation"
-  eq <- getLine
-  print $ "input is " ++ eq
-  print $ "the equation is " ++ (show . parser) eq
+  print "input a expression"
+  s <- getLine
+  print $ "input is " ++ s
+  let ex = expr s
+  print $ "the equation is " ++ show ex
+  print $ "evaluated to " ++ show (eval . fst <$> ex)
