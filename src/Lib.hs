@@ -77,7 +77,10 @@ digit :: ParseFunc Int
 digit s = apply (\c -> read [c]) $ is isDigit s
 
 number :: ParseFunc Int
-number s = apply read $ rep (Just 1, Nothing) (is isDigit) s
+number = apply f . g
+  where
+    g = rep (Nothing, Just 1) (chr '-') ~~ rep (Just 1, Nothing) (is isDigit)
+    f (c1, c2) = read $ c1 ++ c2
 
 expr :: ParseFunc Component
 expr = apply f . g
