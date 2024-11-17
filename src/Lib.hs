@@ -4,6 +4,7 @@ module Lib (anyChar, eof, chr, is, nt, (~|~), (~~), rep, digit, number, factor, 
 import           Data.Char  (isDigit)
 import           Data.Maybe (isJust)
 import           GHC.Base   (divInt)
+import GHC.Float (divideDouble)
 
 type ParseFunc a = String -> Maybe (a, String)
 
@@ -76,11 +77,11 @@ rep range f s = g 0 [] s
 digit :: ParseFunc Int
 digit s = apply (\c -> read [c]) $ is isDigit s
 
-number :: ParseFunc Int
+number :: ParseFunc Double
 number = apply f . g
   where
-    g = rep (Nothing, Just 1) (chr '-') ~~ rep (Just 1, Nothing) (is isDigit)
-    f (c1, c2) = read $ c1 ++ c2
+    g = rep (Nothing, Just 1) (chr '-') ~~ rep (Just 1, Nothing) (is isDigit) ~~ rep (Nothing, Just 1) (chr '.') ~~ rep (Nothing, Nothing) (is isDigit)
+    f (((c1, c2), c3), c4) = read $ c1 ++ c2 ++ c3 ++ c4
 
 expr :: ParseFunc Component
 expr = apply f . g
@@ -113,7 +114,7 @@ paren = apply f . g
     f ((_, c), _) = Paren c
 
 
-data Component = Num Int | Paren Component | Op Operation Component Component
+data Component = Num Double | Paren Component | Op Operation Component Component
 data Operation = Add | Sub | Mul | Div
 
 instance Show Component where
@@ -127,10 +128,10 @@ instance Show Operation where
   show Mul = "*"
   show Div = "/"
 
-eval :: Component -> Int
+eval :: Component -> Double
 eval (Num n)        = n
 eval (Paren c)      = eval c
 eval (Op Add c1 c2) = eval c1 + eval c2
 eval (Op Sub c1 c2) = eval c1 - eval c2
 eval (Op Mul c1 c2) = eval c1 * eval c2
-eval (Op Div c1 c2) = divInt (eval c1) (eval c2)
+eval (Op Div c1 c2) = divideDouble (eval c1) (eval c2)
